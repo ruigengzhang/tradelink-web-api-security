@@ -3,6 +3,9 @@
 const login = document.querySelector("#login");
 const workspace = document.querySelector("#workspace");
 const search = document.querySelector("#search");
+const productStatus = document.createElement("p");
+productStatus.setAttribute("role", "status");
+search.after(productStatus);
 const notice = document.querySelector("#notice");
 const products = document.querySelector("#products");
 const orders = document.querySelector("#orders");
@@ -34,6 +37,7 @@ async function showProducts(token, query = "") {
   renderList(products, items.map(item =>
     item.name + " — USD " + (item.price_cents / 100).toFixed(2)
   ));
+  return items.length;
 }
 
 login.addEventListener("submit", async event => {
@@ -47,7 +51,6 @@ login.addEventListener("submit", async event => {
     accessToken = session.access_token;
     login.reset();
     login.hidden = true;
-    workspace.hidden = false;
     document.querySelector("#role").textContent = "Signed in as " + session.role + ".";
     const { items } = await api("/orders", { token: session.access_token });
     if (session.access_token !== accessToken) return;
@@ -58,6 +61,7 @@ login.addEventListener("submit", async event => {
   } catch (error) {
     notice.textContent = error.message;
   } finally {
+    workspace.hidden = !accessToken;
     button.disabled = false;
   }
 });
@@ -66,12 +70,17 @@ search.addEventListener("submit", async event => {
   event.preventDefault();
   const token = accessToken;
   const button = search.querySelector("button");
+  const query = new FormData(search).get("q");
   button.disabled = true;
-  notice.textContent = "";
+  productStatus.textContent = "Searching…";
   try {
-    await showProducts(token, new FormData(search).get("q"));
+    const count = await showProducts(token, query);
+    if (token !== accessToken) return;
+    const label = count === 1 ? "product" : "products";
+    const filter = query ? " for “" + query + "”" : "";
+    productStatus.textContent = "Found " + count + " " + label + filter + ".";
   } catch (error) {
-    if (token === accessToken) notice.textContent = error.message;
+    if (token === accessToken) productStatus.textContent = error.message;
   } finally {
     button.disabled = false;
   }
@@ -90,6 +99,7 @@ document.querySelector("#logout").addEventListener("click", async event => {
     products.replaceChildren();
     orders.replaceChildren();
     search.reset();
+    productStatus.textContent = "";
     workspace.hidden = true;
     login.hidden = false;
     button.disabled = false;
