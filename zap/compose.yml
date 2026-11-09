@@ -1,0 +1,36 @@
+services:
+  app:
+    image: python:3.14-slim
+    volumes:
+      - ..:/source:ro
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p /tmp/tradelink
+        cd /tmp/tradelink
+        cp -R /source/tradelink .
+        python -m pip install --no-cache-dir -r /source/requirements.txt
+        python -m flask --app tradelink init-db --demo
+        exec python -m flask --app tradelink run --host 127.0.0.1 --port 5000
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:5000/healthz', timeout=2).close()"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    depends_on:
+      app:
+        condition: service_healthy
+    network_mode: service:app
+    volumes:
+      - .:/zap/wrk:rw
+    command:
+      - zap-baseline.py
+      - -t
+      - http://127.0.0.1:5000/
+      - -c
+      - baseline.conf
+      - -r
+      - report.html

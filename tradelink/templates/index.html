@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TradeLink Security Lab</title>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <main>
+    <h1>TradeLink Security Lab</h1>
+    <p>A fictional cross-border trade workspace for US buyers and Chinese suppliers.</p>
+    <p>Use a seeded demo account, such as <code>pacific-buyer</code> or <code>atlantic-supplier</code>.</p>
+    <form id="login">
+      <label>Username <input name="username" autocomplete="username" required></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Sign in</button>
+    </form>
+    <section id="workspace" hidden>
+      <h2>Your workspace</h2>
+      <p id="role"></p>
+      <button id="logout">Sign out</button>
+      <form id="search">
+        <label>Product search <input name="q" maxlength="100"></label>
+        <button type="submit">Find products</button>
+      </form>
+      <h3>Products</h3>
+      <ul id="products"></ul>
+      <h3>Orders</h3>
+      <ul id="orders"></ul>
+    </section>
+    <p id="notice" role="status"></p>
+  </main>
+</body>
+</html>
